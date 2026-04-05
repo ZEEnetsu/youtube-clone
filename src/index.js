@@ -1,12 +1,14 @@
-import dotenv from "dotenv";
-import connectDB from "./db/index.js";
-dotenv.config({ path: "./.env" });
-const PORT = process.env.PORT || 8000;
-import {app} from "./app.js"
+// index.js
+import "dotenv/config"; // ✅ this loads .env immediately as part of the import phase
 
-app.get("/",(req,res)=>{
-   res.send("welcome to youtube clone backend");
-})
+import connectDB from "./db/index.js";
+import { app } from "./app.js";
+
+const PORT = process.env.PORT || 8000;
+
+app.get("/", (req, res) => {
+  res.send("welcome to youtube clone backend");
+});
 
 connectDB()
   .then(() => {

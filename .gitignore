@@ -1,3 +1,7 @@
+# keeping the files not the folder
+public/temp/*
+!public/temp/.gitkeep
+
 # Logs
 logs
 *.log
