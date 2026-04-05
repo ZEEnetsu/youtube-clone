@@ -2,6 +2,8 @@
 public/temp/*
 !public/temp/.gitkeep
 
+.postman
+postman
 # Logs
 logs
 *.log
