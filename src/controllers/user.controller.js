@@ -32,6 +32,7 @@ const registerUser = asyncHandler(async (req, res) => {
       message:"Avatar is required",
     });
   }
+  
   if (!req.files || !req.files.avatar) {
     throw res.status(400).json({
       success:false,
