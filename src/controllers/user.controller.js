@@ -3,6 +3,22 @@ import { User } from "../models/user.model.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 
+const generateAccessAndRefereshTokens = async (user) => {
+  try {
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new Error({
+      success: false,
+      statusCode: 500,
+      message: "Internal server error, token generation failed",
+    });
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   const { username, name, email, password } = req.body;
 
@@ -27,16 +43,9 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   if (!req.files || !req.files.avatar) {
-    throw res.status(400).json({
-      success:false,
-      message:"Avatar is required",
-    });
-  }
-  
-  if (!req.files || !req.files.avatar) {
-    throw res.status(400).json({
-      success:false,
-      message:"Avatar is required",
+    return res.status(400).json({
+      success: false,
+      message: "Avatar is required",
     });
   }
 
@@ -60,9 +69,9 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImage: coverImage || "",
   });
 
-  const createdUser = await User
-    .findById(user._id)
-    .select("-password -refreshToken");
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken",
+  );
   if (!createdUser) {
     return res.status(500).json({
       success: false,
@@ -74,4 +83,53 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponce(200, "User registered successfully", createdUser));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, username, password } = req.body;
+  if (!email && !username) {
+    return res.status(401).json({
+      success: false,
+      message: "email or username must be required",
+    });
+  }
+
+  const userFound = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  if (!userFound) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found, create an account",
+    });
+  }
+
+  const isPasswordMatch = await userFound.comparePassword(password);
+  if (!isPasswordMatch) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
+
+  const { accessToken, refreshToken } =
+    await generateAccessAndRefereshTokens(userFound);
+  const userData = await User.findById(userFound._id).select(
+    "-password -refreshToken",
+  );
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .cookie("refereshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .json(
+      new ApiResponce(200, "User logged in successfully", {
+        accessToken,
+        user: userData,
+      }),
+    );
+});
+
+export { registerUser, loginUser };
