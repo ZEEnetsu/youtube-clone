@@ -11,11 +11,9 @@ const generateAccessAndRefereshTokens = async (user) => {
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
-    throw new Error({
-      success: false,
-      statusCode: 500,
-      message: "Internal server error, token generation failed",
-    });
+    const err =  new Error("Token generation failed : " +  error.message); 
+    err.statusCode = 500;
+    throw err;
   }
 };
 
