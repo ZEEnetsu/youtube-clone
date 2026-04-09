@@ -8,17 +8,11 @@ cloudinary.config({
 });
 
 const uploadToCloudinary = async (localFilePath) => {
-  console.log("Cloudinary config:", {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    secret_exists: !!process.env.CLOUDINARY_API_SECRET,
-  });
-  console.log("Uploading file:", localFilePath); //
   try {
     const res = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-    console.log("Cloudinary upload response:", res); //
+    console.log("Image secure URL :",res);
     return res.secure_url;
   } catch (error) {
     console.log("Cloudinary error:", error);
