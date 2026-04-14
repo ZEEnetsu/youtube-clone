@@ -4,7 +4,7 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { ApiError } from "../utils/apiError.js";
 
-const generateAccessAndRefereshTokens = async (user) => {
+const generateAccessAndRefreshTokens = async (user) => {
   try {
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
@@ -111,7 +111,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const { accessToken, refreshToken } =
-    await generateAccessAndRefereshTokens(userFound);
+    await generateAccessAndRefreshTokens(userFound);
   const userData = await User.findById(userFound._id).select(
     "-password -refreshToken",
   );
@@ -169,21 +169,21 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       return new ApiError(401, "Unauthorized request - invalid refresh token");
     }
     const cookieOption = { httpOnly: true, secure: true };
-    const { accessToken, newRefreshToken } =
-      await generateAccessAndRefereshTokens(user._id);
+    const { accessToken, newRefreshToken: refreshToken } =
+     await generateAccessAndRefreshTokens(user);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, cookieOption)
-      .cookie("refreshToken", newRefreshToken, cookieOption)
+      .cookie("refreshToken", refreshToken, cookieOption)
       .json(
         new ApiResponce(200, "Access Token refreshed succesfully", {
           accessToken,
-          refreshToken: newRefreshToken,
+          refreshToken,
         }),
       );
   } catch (error) {
-    return new ApiError(
+    throw new ApiError(
       401,
       "unauthorized request - " + error.message ||
         "unknow request during token refresh",
