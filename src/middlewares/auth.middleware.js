@@ -21,8 +21,9 @@ export const authenticateUser = asyncHandler(async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (error) {
-    throw new ApiError(401, "authorization failed: " + error.message || 
-        "Unknown authorization error"
+    throw new ApiError(
+      401,
+      "authorization failed: " + error.message || "Unknown authorization error",
     );
   }
 });

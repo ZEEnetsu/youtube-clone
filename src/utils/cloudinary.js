@@ -12,7 +12,7 @@ const uploadToCloudinary = async (localFilePath) => {
     const res = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-    console.log("Image secure URL :",res);
+    console.log("Image secure URL :", res);
     return res.secure_url;
   } catch (error) {
     console.log("Cloudinary error:", error);

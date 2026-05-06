@@ -32,14 +32,12 @@ const userSchema = new Schema(
     searchHistory: { type: [String] },
   },
   { timestamps: true },
-);
+);  
 
-// async/await without next (modern, clean)
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
-
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
@@ -69,6 +67,5 @@ userSchema.methods.generateRefreshToken = function () {
   );
   return token;
 };
-
 
 export const User = mongoose.model("User", userSchema);

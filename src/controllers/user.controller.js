@@ -135,7 +135,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     { $set: { refreshToken: null } },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   const cookieOptions = {
@@ -170,7 +170,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
     const cookieOption = { httpOnly: true, secure: true };
     const { accessToken, newRefreshToken: refreshToken } =
-     await generateAccessAndRefreshTokens(user);
+      await generateAccessAndRefreshTokens(user);
 
     return res
       .status(200)
@@ -186,9 +186,25 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(
       401,
       "unauthorized request - " + error.message ||
-        "unknow request during token refresh",
+        "unknown request during token refresh",
     );
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user?.id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) return new ApiResponce(200, "incorrect password", {});
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponce(200, "password changed successfully", {}));
+});
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken , changePassword };
